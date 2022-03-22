@@ -12,7 +12,7 @@ export default {
       stbDebt: "0x87c2635cc412f558cb63ae9972c8d773020f00c1",
       oracle: "0x678df3415fc31947da4324ec63212874be5a82f8",
       gateway: "0x0bb31c42D0692369Ba681A925C254fEB605c327b",
-    },
+    },  
     "WETH": {
       reserve: "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
       agToken: "0xb5A165d9177555418796638447396377Edf4C18a",
@@ -29,7 +29,7 @@ export default {
     },
     "LINK": {
       reserve: "0xE2e73A1c69ecF83F464EFCE6A5be353a37cA09b2",
-      agToken: "0xADc675C94DD7AF3b08baC0fa7A8F42e3dc3739E8",
+      agToken: "0x1432672eaE70B126f9d1967860409Ea04ED238F2",
       varDebt: "0xADc675C94DD7AF3b08baC0fa7A8F42e3dc3739E8",
       stbDebt: "0x3479b3988990740846ae7be274ceff2e3c2a0984",
       oracle: "0xed322a5ac55bae091190dff9066760b86751947b",
