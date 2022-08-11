@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ethersproject/shims": "^5.6.0",
     "dotenv": "^10.0.0",
     "ethers": "^5.6.2",
     "node-fetch": "^3.2.3"

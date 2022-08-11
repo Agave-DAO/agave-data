@@ -1,6 +1,6 @@
 import fs from "fs";
 import util from "util";
-import { erc20, IncentivesContract } from "./web3.js";
+import { erc20 } from "./web3.js";
 import addresses from "./contract-addresses.js";
 import { fetchAllUsers } from "./subgraph-queries.js";
 import 'dotenv/config';
@@ -96,7 +96,7 @@ async function iterativeWeb3Query(users) {
     for (const userData of users) {
         const user = userData.id;
         let multipleBalances = await getUserBalance(user);
-        console.log(i++, " <> ", user, " <> ", lines);
+        console.log(i++, " <> ", user);
         stream.write(
             JSON.stringify({
                 user: user,
