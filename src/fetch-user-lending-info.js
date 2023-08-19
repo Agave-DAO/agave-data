@@ -78,7 +78,7 @@ async function getUserAccountData(user) {
       multipleAccountData[`ltv`] = x[4].toString();
       multipleAccountData[`healthFactor`] = x[5].toString();
     }
-   // console.log("userData: ", user);
+    // console.log("userData: ", user);
   });
   if (skipFlag) {
     return false;
@@ -97,22 +97,23 @@ async function getUserAccountData(user) {
   await getUserReservesData().then((x) => {
     for (let i = 0; i < x[0].length; i++) {
       let token = x[0][i][2].toString().slice(2);
-      multipleAccountData[`usageAsCollateralEnabled${token}`] =
+      multipleAccountData[`${token}:usageAsCollateralEnabled`] =
         x[1][i][2].toString();
-      multipleAccountData[`ag${token}Balance`] = x[1][i][1].toString();
-      multipleAccountData[`scaledVariable${token}Debt`] = x[1][i][4].toString();
-      multipleAccountData[`principalStable${token}Debt`] =
+      multipleAccountData[`${token}:agBalance`] = x[1][i][1].toString();
+      multipleAccountData[`${token}:scaledVariableDebt`] =
+        x[1][i][4].toString();
+      multipleAccountData[`${token}:principalStableDebt`] =
         x[1][i][5].toString();
-      multipleAccountData[`stableBorrowRate${token}`] = x[1][i][3].toString();
+      multipleAccountData[`${token}:stableBorrowRate`] = x[1][i][3].toString();
     }
-   // console.log("tokenData: ", user);
+    // console.log("tokenData: ", user);
   });
   let incomplete = true;
   while (incomplete) {
     try {
       if (
         Object.keys(multipleAccountData).length ===
-          (Object.keys(addresses.tokens).length * 5) + 6
+        Object.keys(addresses.tokens).length * 5 + 6
       ) {
         incomplete = false;
       }
@@ -125,38 +126,31 @@ async function getUserAccountData(user) {
 }
 
 async function iterativeWeb3Query(users) {
-  let data = 7695;
-  stream.write("[\n",
-    function (error) {}
-  );
+  let data = 0;
+  stream.write("[\n", function (error) {});
   while (users[data]) {
     const user = users[data].id;
-    data++
+    data++;
     let multipleAccountData = await getUserAccountData(user);
     if (multipleAccountData) {
       console.log(data, " <> ", user);
       let text = JSON.stringify({
         user: user,
         ...multipleAccountData,
-      })
-      if (users.length > data){
+      });
+      if (users.length > data) {
         text = text + ",\n";
       }
-      stream.write(
-        text,
-        function (error) {
-          if (!error) {
-            // If the string was appended successfully:
-            lines++; // Report back there was no error
-          }
+      stream.write(text, function (error) {
+        if (!error) {
+          // If the string was appended successfully:
+          lines++; // Report back there was no error
         }
-      );
+      });
       await sleep(100);
     }
-    stream.write("\n]",
-    function (error) {}
-  );
   }
+  stream.write("\n]", function (error) {});
 
   return true;
 }
