@@ -4,22 +4,26 @@ import fs from "fs";
 const GRAPHQL_URL = "https://api.thegraph.com/subgraphs/name/agave-dao/agave-xdai";
 
 async function fetchAllUsers() {
-    let skipN = 0;
     let users = [];
-    for (skipN; skipN < 1300; skipN = skipN + 100) {
-      const newUsers = await queryUserIds(skipN);
+    let userId = "";
+    while(true) {
+      const newUsers = await queryUserIds(userId);
       users = users.concat(newUsers);
+      if (newUsers.length < 1000){
+        break;
+      }
+      userId = users[users.length - 1].id;
     }
     return users;
 }
 
-async function queryUserIds(skipN) {
+async function queryUserIds(userId) {
     // Construct a schema, using GraphQL schema language
     const querySchema = `
-  {
-      users(orderBy:id ,skip:${skipN}) {
-        id
-      }
+    {
+        users(orderBy:id ,first:1000, where:{id_gt: "${userId}"}) {
+          id
+        }
     } 
   `;
     const response = await fetch(GRAPHQL_URL, {
@@ -31,7 +35,7 @@ async function queryUserIds(skipN) {
         query: querySchema,
       }),
     });
-  
+    
     const responseBody = await response.json();
     return responseBody.data.users;
   }

@@ -5,6 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "lending": "node src/fetch-user-lending-info.js",
+    "balances": "src/fetch-user-balances.js",
     "test": "node src/index.js"
   },
   "author": "",

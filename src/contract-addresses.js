@@ -1,9 +1,10 @@
 export default {
   incentivesController: "0xfa255f5104f129b78f477e9a6d050a02f31a5d86",
   lendingPool:"0x5E15d5E33d318dCEd84Bfe3F4EACe07909bE6d9c",
-  agaveOracle:"0x64cE22B5bA4175002AC5B6CCE3570432cA363c29",
+  agaveOracle:"0x062B9D1D3F5357Ef399948067E93B81F4B85db7a",
   lendingRateOracle:"0xc7313D0a5BF166c984B3e818B59432513D2D4938",
-  dataProvider: "0x24dCbd376Db23e4771375092344f5CbEA3541FC0",
+  dataProvider: "0xe6729389dea76d47b5bcb0ba5c080821c3b51329",
+  UiPoolDataProvider:"0x169eb836bd947670d2d26b64157a8723b61744c5",
   tokens: {
     "WXDAI": {
       reserve: "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
@@ -55,5 +56,26 @@ export default {
       stbDebt: "0x6ca958336e7a1bdcdf7762aeb81613eaddcc3110",
       oracle: "0x3190f6d277fea03a082eba20b136f95f0dccb3dd",
     },
+    "USDT": {
+      reserve: "0x4ecaba5870353805a9f068101a40e0f32ed605c6",
+      agToken: "0x5b4ef67c63d091083ec4d30cfc4ac685ef051046",
+      varDebt: "0x474f83d77150bddc6a6f34eee4f5574eafd05938",
+      stbDebt: "0xb067fad853d099edd9c86483682e7d947b7983e5",
+      oracle: "0x68811D7DF835B1c33e6EEae8E7C141eF48d48cc7",
+    },
+    "EURe": {
+      reserve: "0xcB444e90D8198415266c6a2724b7900fb12FC56E",
+      agToken: "0xEB20B07a9abE765252E6b45e8292b12CB553CcA6",
+      varDebt: "0xA4a45B550897dD5d8a44c68DBD245C5934EbAcd9",
+      stbDebt: "0x78A69aFc50E7705Ad4588cB57cF8D27B29161e51",
+      oracle: "0xab70BCB260073d036d1660201e9d5405F5829b7a",
+    },
+    "wstETH": {
+      reserve: "0x6c76971f98945ae98dd7d4dfca8711ebea946ea6",
+      agToken: "0x606b2689ba4a9f798f449fa6495186021486dd9f",
+      varDebt: "0xd0b168fd6a4e220f1a8fa99de97f8f428587e178",
+      stbDebt: "0xec7f91f26e7fd42e90ffa53ca0b0b02095a6b450",
+      oracle: "0xae27e63307963850c4d30BFba78FC1116d7b48C3",
+    }
   },
 };
