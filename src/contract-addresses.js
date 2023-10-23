@@ -76,6 +76,13 @@ export default {
       varDebt: "0xd0b168fd6a4e220f1a8fa99de97f8f428587e178",
       stbDebt: "0xec7f91f26e7fd42e90ffa53ca0b0b02095a6b450",
       oracle: "0xae27e63307963850c4d30BFba78FC1116d7b48C3",
+    },
+    "sDAI": {
+      reserve: "0xaf204776c7245bF4147c2612BF6e5972Ee483701",
+      agToken: "0xe1cf0d5a56c993c3c2a0442dd645386aeff1fc9a",
+      varDebt: "0xad15fec0026e28dfb10588fa35a383b07014e0c6",
+      stbDebt: "0x6927a7cda946910126008af78eba50db6415284f",
+      oracle: "0x2CD3494BB70A30f042FCfcCAB4D192F6B7449042",
     }
   },
 };

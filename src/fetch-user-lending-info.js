@@ -16,6 +16,9 @@ function sleep(ms) {
   return new Promise((res) => setTimeout(res, ms));
 }
 
+fs.truncate("user-lending-info.json", 0, function () {
+  console.log("done");
+});
 let stream = fs.createWriteStream("user-lending-info.json", { flags: "a" });
 
 async function write_userInfo() {
@@ -69,7 +72,6 @@ async function getUserAccountData(user) {
       "115792089237316195423570985008687907853269984665640564039457584007913129639935"
     ) {
       skipFlag = true;
-      console.log("skipped: ", user);
     } else {
       multipleAccountData[`totalCollateralETH`] = x[0].toString();
       multipleAccountData[`totalDebtETH`] = x[1].toString();
@@ -77,8 +79,10 @@ async function getUserAccountData(user) {
       multipleAccountData[`currentLiquidationThreshold`] = x[3].toString();
       multipleAccountData[`ltv`] = x[4].toString();
       multipleAccountData[`healthFactor`] = x[5].toString();
+      if (x[5] < 1e18){
+        console.log(user, " < healthFactor > ",x[5].toString());
+      }
     }
-    // console.log("userData: ", user);
   });
   if (skipFlag) {
     return false;
@@ -125,34 +129,38 @@ async function getUserAccountData(user) {
   return multipleAccountData;
 }
 
-async function iterativeWeb3Query(users) {
+ async function iterativeWeb3Query(users) {
   let data = 0;
   stream.write("[\n", function (error) {});
   while (users[data]) {
     const user = users[data].id;
     data++;
-    let multipleAccountData = await getUserAccountData(user);
-    if (multipleAccountData) {
-      console.log(data, " <> ", user);
+    await getUserAccountData(user).then(x => {
+      if (!x) return;
       let text = JSON.stringify({
         user: user,
-        ...multipleAccountData,
+        ...x,
       });
       if (users.length > data) {
         text = text + ",\n";
       }
-      stream.write(text, function (error) {
-        if (!error) {
-          // If the string was appended successfully:
-          lines++; // Report back there was no error
-        }
-      });
-      await sleep(100);
-    }
+      handleUserData(text);
+    });
+    if(data % 500 === 0)
+      console.log(data , " / ", users.length)
   }
   stream.write("\n]", function (error) {});
 
   return true;
+}
+
+function handleUserData(text) {
+  stream.write(text, function (error) {
+    if (!error) {
+      // If the string was appended successfully:
+      lines++; // Report back there was no error
+    }
+  });
 }
 
 try {
