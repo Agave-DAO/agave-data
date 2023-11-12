@@ -79,8 +79,8 @@ async function getUserAccountData(user) {
       multipleAccountData[`currentLiquidationThreshold`] = x[3].toString();
       multipleAccountData[`ltv`] = x[4].toString();
       multipleAccountData[`healthFactor`] = x[5].toString();
-      if (x[5] < 1e18){
-        console.log(user, " < healthFactor > ",x[5].toString());
+      if (x[5] < 1e18 && x[1] >5e16){
+        console.log(user, " | healthFactor >",x[5].toString(), " | totalDebt >", x[1]/1e18);
       }
     }
   });
@@ -146,11 +146,11 @@ async function getUserAccountData(user) {
       }
       handleUserData(text);
     });
-    if(data % 500 === 0)
+    if(data % 1000 === 0)
       console.log(data , " / ", users.length)
   }
   stream.write("\n]", function (error) {});
-
+  console.log(lines, " users with debt");
   return true;
 }
 
