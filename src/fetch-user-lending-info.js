@@ -32,7 +32,7 @@ let userInfo = [];
 async function getUsersAccountData(users) {
   const finished = await iterativeWeb3Query(users);
   if (finished) {
-    return userInfo;
+    return userInfo; 
   }
 }
 
@@ -58,7 +58,7 @@ async function getUserAccountData(user) {
     while (true) {
       try {
         return await lendingPool.getUserAccountData(user, {
-          blockTag: blockTarget,
+          blockTag: blockTarget, 
         });
       } catch (e) {
         console.log(e.message);

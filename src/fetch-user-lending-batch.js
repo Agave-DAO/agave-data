@@ -3,8 +3,7 @@ import util from "util";
 import dotenv from "dotenv";
 dotenv.config();
 
-import { dataProvider, erc20, lendingPool, UiProvider } from "./web3.js";
-import addresses from "./contract-addresses.js";
+import { getBatchAccountData, getBatchReservesData } from "./web3.js";
 import { fetchAllUsers } from "./subgraph-queries.js";
 
 let blockTarget =
@@ -12,178 +11,107 @@ let blockTarget =
     ? Number(process.env.BLOCK)
     : process.env.BLOCK;
 
-function sleep(ms) {
-  return new Promise((res) => setTimeout(res, ms));
-}
-
 fs.truncate("user-lending-info.json", 0, function () {
   console.log("done");
 });
 let stream = fs.createWriteStream("user-lending-info.json", { flags: "a" });
 
-async function write_userInfo() {
+let lines = 0;
+
+const multicallSize = 400;
+
+const assetSymbols = [
+  "USDC",
+  "WXDAI",
+  "LINK",
+  "GNO",
+  "WBTC",
+  "WETH",
+  "FOX",
+  "USDT",
+  "EURe",
+  "wstETH",
+  "sDAI",
+];
+
+let totalUsers = 0;
+async function fetchUsers() {
   const users = await fetchAllUsers();
-  console.log(users.length, " users");
+  totalUsers = users.length;
   await loopAssetMulticall(users);
 }
 
-let userInfo = [];
+async function fetchMulticallData(users) {
+  let userInfo = [];
+  const accountData = await getBatchAccountData(users);
+  const reservesData = await getBatchReservesData(users);
+  for (let n = 0; n < users.length; n++) {
+    let multipleAccountData = {};
+    const x = accountData[n].result;
+    const res = reservesData[n].result;
+    multipleAccountData['user'] = users[n].id;
+    multipleAccountData[`totalCollateralETH`] = Number(x[0]);
+    multipleAccountData[`totalDebtETH`] = Number(x[1]);
+    multipleAccountData[`availableBorrowsETH`] = Number(x[2]);
+    multipleAccountData[`currentLiquidationThreshold`] = Number(x[3]);
+    multipleAccountData[`ltv`] = Number(x[4]);
+    multipleAccountData[`healthFactor`] = Number(x[5]);
 
-let lines = 0;
-
-async function getUserAccountData(user) {
-  let multipleAccountData = {};
-  let skipFlag = false;
-
-  let getUserReservesData = async () => {
-    while (true) {
-      try {
-        return await UiProvider.getReservesData(user, {
-          blockTag: blockTarget,
-        });
-      } catch (e) {
-        console.log(e.message);
-        await sleep(200);
-      }
-    }
-  };
-  let getUserAccountData = async () => {
-    while (true) {
-      try {
-        return await lendingPool.getUserAccountData(user, {
-          blockTag: blockTarget,
-        });
-      } catch (e) {
-        console.log(e.message);
-        await sleep(200);
-      }
-    }
-  };
-  await getUserAccountData().then((x) => {
-    if (
-      x[5].toString() ===
-      "115792089237316195423570985008687907853269984665640564039457584007913129639935"
-    ) {
-      skipFlag = true;
-    } else {
-      multipleAccountData[`totalCollateralETH`] = x[0].toString();
-      multipleAccountData[`totalDebtETH`] = x[1].toString();
-      multipleAccountData[`availableBorrowsETH`] = x[2].toString();
-      multipleAccountData[`currentLiquidationThreshold`] = x[3].toString();
-      multipleAccountData[`ltv`] = x[4].toString();
-      multipleAccountData[`healthFactor`] = x[5].toString();
-      if (x[5] < 1e18){
-        console.log(user, " < healthFactor > ",x[5].toString());
-      }
-    }
-  });
-  if (skipFlag) {
-    return false;
-  }
-  /*
-  struct UserReserveData {
-  0  address underlyingAsset;
-  1  uint256 scaledATokenBalance;
-  2  bool usageAsCollateralEnabledOnUser;
-  3  uint256 stableBorrowRate;
-  4  uint256 scaledVariableDebt;
-  5  uint256 principalStableDebt;
-  6  uint256 stableBorrowLastUpdateTimestamp;
-  }*/
-
-  await getUserReservesData().then((x) => {
-    for (let i = 0; i < x[0].length; i++) {
-      let token = x[0][i][2].toString().slice(2);
+    for (let i = 0; i < res.length; i++) {
+      let token = assetSymbols[i];
       multipleAccountData[`${token}:usageAsCollateralEnabled`] =
-        x[1][i][2].toString();
-      multipleAccountData[`${token}:agBalance`] = x[1][i][1].toString();
+      res[i].usageAsCollateralEnabled;
+      multipleAccountData[`${token}:agBalance`] =
+      Number(res[i].scaledATokenBalance);
       multipleAccountData[`${token}:scaledVariableDebt`] =
-        x[1][i][4].toString();
+      Number(res[i].scaledVariableDebt);
       multipleAccountData[`${token}:principalStableDebt`] =
-        x[1][i][5].toString();
-      multipleAccountData[`${token}:stableBorrowRate`] = x[1][i][3].toString();
+      Number(res[i].principalStableDebt);
     }
-    // console.log("tokenData: ", user);
-  });
-  let incomplete = true;
-  while (incomplete) {
-    try {
-      if (
-        Object.keys(multipleAccountData).length ===
-        Object.keys(addresses.tokens).length * 5 + 6
-      ) {
-        incomplete = false;
-      }
-      throw "not yet";
-    } catch (e) {
-      await sleep(50);
-    }
-  }
-  return multipleAccountData;
-}
 
+    if (x[5] < 1e18 && x[1] > 5e16) {
+      console.log(
+        users[n].id,
+        " | healthFactor >",
+        Number(x[5]),
+        " | totalDebt >",
+        Number(x[1]) / 1e18
+      );
+    }
+    userInfo.push(multipleAccountData);
+  }
+  return userInfo;
+}
 
 async function loopAssetMulticall(users) {
-    let tempUsers = [];
-    for (let i = 0; i < assetUsers.length; i++) {
-      tempUsers.push(users[i]);
-      if (tempUsers.length >= 10 || i + 1 === assetUsers.length) {
-        await getUsersAccountData(tempUsers);
-        let x = [];
-        tempUsers = x;
-      }
-    }
-  
-}
-
-async function getUsersAccountData() {
-  let output = [];
   let tempUsers = [];
-  let relevantUsers = [];
-  for (let i = 0; i < users.length; i++) {
-    tempUsers.push(users[i].user);
-    if (tempUsers.length > 500 || i+1 >= users.length ) {
-      let tempOutput = await getUsersData(tempUsers, asset);
-      output = tempOutput.concat(output);
-      tempUsers = [];
-    }
-  }
-  console.log(output[1]["result"])
-  for (let i = 0; i < users.length; i++) {
-    if (output[i]["result"] > 0n) {
-      relevantUsers.push(users[i].user);
-    }
-  }
-  console.log("asset: ",asset)
-  console.log("relevant users: ", relevantUsers.length)
-  console.log("last user: ", relevantUsers[relevantUsers.length-1])
-  return relevantUsers;
-}
-
-
- async function iterativeWeb3Query(users) {
-  let data = 0;
   stream.write("[\n", function (error) {});
-  while (users[data]) {
-    const user = users[data].id;
-    data++;
-    await getUserAccountData(user).then(x => {
-      if (!x) return;
-      let text = JSON.stringify({
-        user: user,
-        ...x,
+  for (let i = 0; i < users.length; i++) {
+    tempUsers.push(users[i]);
+    if (tempUsers.length >= multicallSize || i + 1 === users.length) {
+      await fetchMulticallData(tempUsers).then((info) => {
+        writeData(info);
       });
-      if (users.length > data) {
-        text = text + ",\n";
-      }
-      handleUserData(text);
-    });
-    if(data % 500 === 0)
-      console.log(data , " / ", users.length)
+      let x = [];
+      tempUsers = x;
+    }
+    if (i % 500 === 0) console.log(i, " / ", users.length);
   }
   stream.write("\n]", function (error) {});
+}
 
-  return true;
+async function writeData(userInfo) {
+  let data = 0;
+  while (userInfo[data]) {
+    let text = JSON.stringify({
+      ...userInfo[data],
+    });
+    data++;
+    if (totalUsers > lines + data) {
+      text = text + ",\n";
+    }
+    handleUserData(text);
+  }
 }
 
 function handleUserData(text) {
@@ -196,7 +124,7 @@ function handleUserData(text) {
 }
 
 try {
-  write_userInfo();
+  fetchUsers();
 } catch (err) {
   console.log(err);
 }

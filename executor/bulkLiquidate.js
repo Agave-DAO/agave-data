@@ -81,7 +81,6 @@ async function loopUsersWithDebt() {
   for (let j = 0; j < users.length; j++) {
     if (users[j].healthFactor < 107e16 && users[j].totalDebtETH > 5e16) {
       const data = await getUserAccountData(users[j].user);
-      await sleep(10);
       if (data[5] < 1000000000000000000n && data[1] > 5e16) {
         const debt = findUserDebts(users[j]);
         const collateral = findUserCollaterals(users[j]);
