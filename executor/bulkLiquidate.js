@@ -78,10 +78,13 @@ function sleep(ms) {
 }
 
 async function loopUsersWithDebt() {
+  let count=0;
   for (let j = 0; j < users.length; j++) {
-    if (users[j].healthFactor < 107e16 && users[j].totalDebtETH > 5e16) {
+    if(users[j].healthFactor < 105e16)
+      count++;
+    if (users[j].healthFactor < 105e16 && users[j].totalDebtETH > 6e16) {
       const data = await getUserAccountData(users[j].user);
-      if (data[5] < 1000000000000000000n && data[1] > 5e16) {
+      if (data[5] < 1000000000000000000n && data[1] > 6e16) {
         const debt = findUserDebts(users[j]);
         const collateral = findUserCollaterals(users[j]);
         console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`], data[5], debt);
@@ -91,11 +94,11 @@ async function loopUsersWithDebt() {
             if (liquidateMax > 0n) {
               console.log("liquidating: ", debt, "> in exchange for >", collateral);
               await liquidateDefault(assets[collateral].reserve, assets[debt].reserve, users[j].user, liquidateMax);
+              count--;
             }
             else {
               console.log(debt, " has no liquidity!!");
             }
-            await sleep(4000);
           }
         }
         else {
@@ -104,16 +107,18 @@ async function loopUsersWithDebt() {
             if (liquidateMax > 0n) {
               console.log("liquidating: ", debt, "> in exchange for >", collateral);
               await liquidate(assets[collateral].reserve, assets[debt].reserve, users[j].user, liquidateMax);
+              count--;
             }
             else {
               console.log(debt, " has no liquidity!!");
             }
-            await sleep(4000);
           }
         }
+        sleep(500);
       }
     }
   }
+  console.log(count, " positions to liquidate");
 }
 
 function findUserDebts(userData) {

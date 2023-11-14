@@ -18,7 +18,7 @@ let stream = fs.createWriteStream("user-lending-info.json", { flags: "a" });
 
 let lines = 0;
 
-const multicallSize = 400;
+const multicallSize = 300;
 
 const assetSymbols = [
   "USDC",
