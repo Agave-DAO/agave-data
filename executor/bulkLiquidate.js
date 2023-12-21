@@ -80,13 +80,14 @@ function sleep(ms) {
 async function loopUsersWithDebt() {
   let count=0;
   for (let j = 0; j < users.length; j++) {
-    if(users[j].healthFactor < 105e16)
+    if(users[j].healthFactor < 106e16)
       count++;
-    if (users[j].healthFactor < 105e16 && users[j].totalDebtETH > 6e16) {
+    if (users[j].healthFactor < 106e16 && users[j].totalDebtETH > 4e16) {
       const data = await getUserAccountData(users[j].user);
-      if (data[5] < 1000000000000000000n && data[1] > 6e16) {
+      await sleep(100);
+      if (data[5] < 1000000000000000000n && data[5] > 900000000000000000n && data[1] > 4e16) {
         const debt = findUserDebts(users[j]);
-        const collateral = findUserCollaterals(users[j]);
+        const collateral = findUserCollaterals(users[j],debt);
         console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`], data[5], debt);
         if (debt === "LINK" || debt === "FOX") {
           if (users[j][`${debt}:scaledVariableDebt`] > 1n && users[j][`${collateral}:agBalance`] > 1n) {
@@ -128,8 +129,9 @@ function findUserDebts(userData) {
   }
 }
 
-function findUserCollaterals(userData) {
+function findUserCollaterals(userData, debtAsset) {
   for (let i = 0; i < assetSymbols.length; i++) {
+    if (assetSymbols[i] === debtAsset) i++;
     if (userData[`${assetSymbols[i]}:agBalance`] > 1n)
       return assetSymbols[i];
   }

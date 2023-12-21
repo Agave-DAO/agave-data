@@ -72,7 +72,7 @@ export async function liquidate(collateralAsset,debtAsset, userAddress, debtToCo
     functionName: "liquidationCallUsingAgToken",
     args: [collateralAsset, debtAsset, userAddress, debtToCover, true],
  //   nonce: nonceValue,
-    gas: 700_000n,
+    gas: 900_000n,
   });
 //  nonceValue = nonceValue + 1;
 }
@@ -85,7 +85,7 @@ export async function liquidateDefault(collateralAsset,debtAsset, userAddress, d
     functionName: "liquidationCall",
     args: [collateralAsset, debtAsset, userAddress, debtToCover, true],
  //   nonce: nonceValue,
-    gas: 700_000n,
+    gas: 900_000n,
   });
 //  nonceValue = nonceValue + 1;
 }

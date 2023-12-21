@@ -1,13 +1,14 @@
 import ethers from "ethers";
 import "@ethersproject/shims";
 import IncentivesController from "./abi/incentivesController.js";
-import {LendingPool } from "./abi/lendingPool.js";
+import { LendingPool } from "./abi/lendingPool.js";
 import DataProvider from "./abi/dataProvider.js";
 import UiPoolDataProvider from "./abi/UiPoolDataProvider.js";
+import { stkAGVEabi } from "./abi/stkAGVE.js";
 import ERC20 from "./abi/ERC20.js";
 import addresses from "./contract-addresses.js";
 import { gnosis, gnosisChiado } from "viem/chains";
-import { createPublicClient, createWalletClient, custom, http } from "viem";
+import { createPublicClient, createWalletClient, custom, http, getAddress  } from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
 // config.js
@@ -49,6 +50,13 @@ export const UiProvider = new ethers.Contract(
   UiPoolDataProvider,
   provider
 );
+
+export const stkAGVE = new ethers.Contract(
+  addresses.stkAGVE,
+  stkAGVEabi,
+  provider
+);
+
 
 export function erc20(tokenAddy) {
   return new ethers.Contract(tokenAddy, ERC20, provider);
@@ -148,4 +156,23 @@ export async function liquidate(
     gas: 700_000n,
   });
   // nonceValue = nonceValue + 1;
+}
+
+
+export async function getBatchStkAGVE_rewards(usersAddress) {
+  let contractCalls = [];
+  let output = [];
+  for (let k in usersAddress) {
+    contractCalls.push({
+      address: addresses.stkAGVE,
+      abi: stkAGVEabi,
+      functionName: "getTotalRewardsBalance",
+      args: [getAddress(usersAddress[k])],
+    });
+  }
+
+  output = await client.multicall({
+    contracts: contractCalls,
+  });
+  return output;
 }

@@ -79,7 +79,7 @@ async function getUserAccountData(user) {
       multipleAccountData[`currentLiquidationThreshold`] = x[3].toString();
       multipleAccountData[`ltv`] = x[4].toString();
       multipleAccountData[`healthFactor`] = x[5].toString();
-      if (x[5] < 1e18 && x[1] >5e16){
+      if (x[5] < 1e18 && x[1] >4e16){
         console.log(user, " | healthFactor >",x[5].toString(), " | totalDebt >", x[1]/1e18);
       }
     }

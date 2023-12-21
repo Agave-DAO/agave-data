@@ -7,8 +7,8 @@
   "scripts": {
     "lending": "node src/fetch-user-lending-batch.js",
     "liquidate": "node executor/bulkLiquidate.js",
-    "balances": "src/fetch-user-balances.js",
-    "test": "node src/index.js"
+    "balances": "node src/fetch-user-balances.js",
+    "stkAGVE": "node src/fetch-stkAGVE-rewards.js"
   },
   "author": "",
   "license": "ISC",

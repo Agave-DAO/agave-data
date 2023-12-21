@@ -5,20 +5,27 @@ dotenv.config();
 
 import { getBatchAccountData, getBatchReservesData } from "./web3.js";
 import { fetchAllUsers } from "./subgraph-queries.js";
+import { skaleEuropa } from "viem/chains";
 
 let blockTarget =
   process.env.BLOCK !== "latest"
     ? Number(process.env.BLOCK)
     : process.env.BLOCK;
 
+function sleep(ms) {
+  return new Promise((res) => setTimeout(res, ms));
+}
+
+
 fs.truncate("user-lending-info.json", 0, function () {
   console.log("done");
 });
+
 let stream = fs.createWriteStream("user-lending-info.json", { flags: "a" });
 
 let lines = 0;
 
-const multicallSize = 300;
+const multicallSize = 400;
 
 const assetSymbols = [
   "USDC",
@@ -44,48 +51,50 @@ async function fetchUsers() {
 async function fetchMulticallData(users) {
   let userInfo = [];
   const accountData = await getBatchAccountData(users);
+  await sleep(1000)
   const reservesData = await getBatchReservesData(users);
-  for (let n = 0; n < users.length; n++) {
-    let multipleAccountData = {};
-    const x = accountData[n].result;
-    const res = reservesData[n].result;
-    multipleAccountData['user'] = users[n].id;
-    multipleAccountData[`totalCollateralETH`] = Number(x[0]);
-    multipleAccountData[`totalDebtETH`] = Number(x[1]);
-    multipleAccountData[`availableBorrowsETH`] = Number(x[2]);
-    multipleAccountData[`currentLiquidationThreshold`] = Number(x[3]);
-    multipleAccountData[`ltv`] = Number(x[4]);
-    multipleAccountData[`healthFactor`] = Number(x[5]);
+  await sleep(1000)
+    for (let n = 0; n < users.length; n++) {
+      let multipleAccountData = {};
+      const x = accountData[n].result;
+      const res = reservesData[n].result;
+      multipleAccountData['user'] = users[n].id;
+      multipleAccountData[`totalCollateralETH`] = Number(x[0]);
+      multipleAccountData[`totalDebtETH`] = Number(x[1]);
+      multipleAccountData[`availableBorrowsETH`] = Number(x[2]);
+      multipleAccountData[`currentLiquidationThreshold`] = Number(x[3]);
+      multipleAccountData[`ltv`] = Number(x[4]);
+      multipleAccountData[`healthFactor`] = Number(x[5]);
 
-    for (let i = 0; i < res.length; i++) {
-      let token = assetSymbols[i];
-      multipleAccountData[`${token}:usageAsCollateralEnabled`] =
-      res[i].usageAsCollateralEnabled;
-      multipleAccountData[`${token}:agBalance`] =
-      Number(res[i].scaledATokenBalance);
-      multipleAccountData[`${token}:scaledVariableDebt`] =
-      Number(res[i].scaledVariableDebt);
-      multipleAccountData[`${token}:principalStableDebt`] =
-      Number(res[i].principalStableDebt);
-    }
+      for (let i = 0; i < res.length; i++) {
+        let token = assetSymbols[i];
+        multipleAccountData[`${token}:usageAsCollateralEnabled`] =
+          res[i].usageAsCollateralEnabled;
+        multipleAccountData[`${token}:agBalance`] =
+          Number(res[i].scaledATokenBalance);
+        multipleAccountData[`${token}:scaledVariableDebt`] =
+          Number(res[i].scaledVariableDebt);
+        multipleAccountData[`${token}:principalStableDebt`] =
+          Number(res[i].principalStableDebt);
+      }
 
-    if (x[5] < 1e18 && x[1] > 5e16) {
-      console.log(
-        users[n].id,
-        " | healthFactor >",
-        Number(x[5]),
-        " | totalDebt >",
-        Number(x[1]) / 1e18
-      );
+      if (x[5] < 1e18 && x[1] > 5e16) {
+        console.log(
+          users[n].id,
+          " | healthFactor >",
+          Number(x[5]),
+          " | totalDebt >",
+          Number(x[1]) / 1e18
+        );
+      }
+      userInfo.push(multipleAccountData);
     }
-    userInfo.push(multipleAccountData);
-  }
   return userInfo;
 }
 
 async function loopAssetMulticall(users) {
   let tempUsers = [];
-  stream.write("[\n", function (error) {});
+  stream.write("[\n", function (error) { });
   for (let i = 0; i < users.length; i++) {
     tempUsers.push(users[i]);
     if (tempUsers.length >= multicallSize || i + 1 === users.length) {
@@ -97,7 +106,7 @@ async function loopAssetMulticall(users) {
     }
     if (i % 500 === 0) console.log(i, " / ", users.length);
   }
-  stream.write("\n]", function (error) {});
+  stream.write("\n]", function (error) { });
 }
 
 async function writeData(userInfo) {
