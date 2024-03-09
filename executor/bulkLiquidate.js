@@ -71,7 +71,7 @@ const assets = {
   }
 }
 
-const assetSymbols = ["EURe", "wstETH", "GNO", "WBTC", "FOX", "LINK", "WETH", "WXDAI", "sDAI", "USDC", "USDT"];
+const assetSymbols = ["WBTC","EURe", "wstETH", "FOX", "LINK","sDAI","GNO", "USDC", "USDT", "WXDAI","WETH",];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -82,19 +82,19 @@ async function loopUsersWithDebt() {
   for (let j = 0; j < users.length; j++) {
     if(users[j].healthFactor < 106e16)
       count++;
-    if (users[j].healthFactor < 106e16 && users[j].totalDebtETH > 4e16) {
+    if (users[j].healthFactor < 106e16 && users[j].totalDebtETH > 6e16) {
       const data = await getUserAccountData(users[j].user);
       await sleep(100);
-      if (data[5] < 1000000000000000000n && data[5] > 900000000000000000n && data[1] > 4e16) {
+      if (data[5] < 1000000000000000000n && data[5] > 900000000000000000n && data[1] > 10e16) {
         const debt = findUserDebts(users[j]);
         const collateral = findUserCollaterals(users[j],debt);
-        console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`], data[5], debt);
+        console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`], data[5], debt);
         if (debt === "LINK" || debt === "FOX") {
-          if (users[j][`${debt}:scaledVariableDebt`] > 1n && users[j][`${collateral}:agBalance`] > 1n) {
-            const liquidateMax = await myBalance(assets[debt].reserve);
-            if (liquidateMax > 0n) {
-              console.log("liquidating: ", debt, "> in exchange for >", collateral);
+          if (users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`] > 10n && users[j][`${collateral}:agBalance`] > 10n) {
+            const liquidateMax = await myBalance(assets[debt].reserve);           
+            if (liquidateMax > 1e4) {
               await liquidateDefault(assets[collateral].reserve, assets[debt].reserve, users[j].user, liquidateMax);
+              console.log("liquidated: ", debt, "> in exchange for >", collateral);
               count--;
             }
             else {
@@ -103,11 +103,11 @@ async function loopUsersWithDebt() {
           }
         }
         else {
-          if (users[j][`${debt}:scaledVariableDebt`] > 1n && users[j][`${collateral}:agBalance`] > 1n) {
+          if (users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`] > 10n && users[j][`${collateral}:agBalance`] > 10n) {
             const liquidateMax = await myBalance(assets[debt].agtoken);
             if (liquidateMax > 0n) {
-              console.log("liquidating: ", debt, "> in exchange for >", collateral);
               await liquidate(assets[collateral].reserve, assets[debt].reserve, users[j].user, liquidateMax);
+              console.log("liquidated: ", debt, "> in exchange for >", collateral);            
               count--;
             }
             else {
@@ -124,16 +124,18 @@ async function loopUsersWithDebt() {
 
 function findUserDebts(userData) {
   for (let i = 0; i < assetSymbols.length; i++) {
-    if (userData[`${assetSymbols[i]}:scaledVariableDebt`] > 1n)
+    if (userData[`${assetSymbols[i]}:scaledVariableDebt`] > 10n || userData[`${assetSymbols[i]}:principalStableDebt`] > 10n){
       return assetSymbols[i];
+    }
   }
 }
 
 function findUserCollaterals(userData, debtAsset) {
   for (let i = 0; i < assetSymbols.length; i++) {
     if (assetSymbols[i] === debtAsset) i++;
-    if (userData[`${assetSymbols[i]}:agBalance`] > 1n)
+    if (userData[`${assetSymbols[i]}:agBalance`] > 10n){
       return assetSymbols[i];
+    }
   }
 }
 
@@ -163,5 +165,3 @@ async function loopAssetMulticall() {
   }
 }
 loopUsersWithDebt();
-
-//approveAll()

@@ -25,7 +25,7 @@ let stream = fs.createWriteStream("user-lending-info.json", { flags: "a" });
 
 let lines = 0;
 
-const multicallSize = 400;
+const multicallSize = 500;
 
 const assetSymbols = [
   "USDC",
@@ -50,10 +50,17 @@ async function fetchUsers() {
 
 async function fetchMulticallData(users) {
   let userInfo = [];
-  const accountData = await getBatchAccountData(users);
-  await sleep(1000)
-  const reservesData = await getBatchReservesData(users);
-  await sleep(1000)
+  let accountData = await getBatchAccountData(users);
+  if (!accountData){
+    await sleep(2500)
+    accountData = await getBatchAccountData(users)
+  }
+  let reservesData = await getBatchReservesData(users);
+  if (!reservesData){
+    await sleep(2500)
+    reservesData = await getBatchReservesData(users);
+  }
+  await sleep(1200)
     for (let n = 0; n < users.length; n++) {
       let multipleAccountData = {};
       const x = accountData[n].result;
@@ -78,13 +85,15 @@ async function fetchMulticallData(users) {
           Number(res[i].principalStableDebt);
       }
 
-      if (x[5] < 1e18 && x[1] > 5e16) {
+      if (x[5] < 1e18 && x[1] > 10e16) {
         console.log(
           users[n].id,
           " | healthFactor >",
           Number(x[5]),
           " | totalDebt >",
-          Number(x[1]) / 1e18
+          Number(x[1]) / 1e18,
+          " | isCollateralized:",
+          (Number(x[1]) < Number(x[0]))
         );
       }
       userInfo.push(multipleAccountData);

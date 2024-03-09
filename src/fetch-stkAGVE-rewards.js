@@ -93,5 +93,3 @@ try {
 } catch (err) {
   console.log(err);
 }
-
-880589441463954258966n

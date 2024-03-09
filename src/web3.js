@@ -70,7 +70,7 @@ const transport = http(process.env.RPC_GNOSIS);
 
 export const client = createPublicClient({
   chain: gnosis,
-  transport: http(),
+  transport,
 });
 
 export const wallet = createWalletClient({
