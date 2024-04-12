@@ -4,7 +4,7 @@ export default {
   agaveOracle:"0x062B9D1D3F5357Ef399948067E93B81F4B85db7a",
   lendingRateOracle:"0xc7313D0a5BF166c984B3e818B59432513D2D4938",
   dataProvider: "0xe6729389dea76d47b5bcb0ba5c080821c3b51329",
-  UiPoolDataProvider:"0x46aD11DF6c12E355241DfCA7ceA5734e0D512e8f",
+  UiPoolDataProvider:"0x606A84c7241Acc02699c5Fe9f8f821a39adBFe88",
   stkAGVE:"0x610525b415c1BFAeAB1a3fc3d85D87b92f048221",
   tokens: {
     "WXDAI": {

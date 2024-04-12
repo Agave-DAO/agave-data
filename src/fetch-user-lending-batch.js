@@ -51,14 +51,14 @@ async function fetchUsers() {
 async function fetchMulticallData(users) {
   let userInfo = [];
   let accountData = await getBatchAccountData(users);
-  if (!accountData){
-    await sleep(2500)
-    accountData = await getBatchAccountData(users)
-  }
   let reservesData = await getBatchReservesData(users);
   if (!reservesData){
     await sleep(2500)
     reservesData = await getBatchReservesData(users);
+  }
+  if (!accountData && false){
+    await sleep(2500)
+    accountData = await getBatchAccountData(users)
   }
   await sleep(1200)
     for (let n = 0; n < users.length; n++) {
@@ -66,12 +66,13 @@ async function fetchMulticallData(users) {
       const x = accountData[n].result;
       const res = reservesData[n].result;
       multipleAccountData['user'] = users[n].id;
-      multipleAccountData[`totalCollateralETH`] = Number(x[0]);
-      multipleAccountData[`totalDebtETH`] = Number(x[1]);
-      multipleAccountData[`availableBorrowsETH`] = Number(x[2]);
-      multipleAccountData[`currentLiquidationThreshold`] = Number(x[3]);
-      multipleAccountData[`ltv`] = Number(x[4]);
-      multipleAccountData[`healthFactor`] = Number(x[5]);
+      multipleAccountData[`totalCollateralETH`] = Number(x? x[0] : 0)
+      multipleAccountData[`totalDebtETH`] = Number(x? x[1] : 0)
+      multipleAccountData[`availableBorrowsETH`] = Number(x? x[2] : 0)
+      multipleAccountData[`currentLiquidationThreshold`] = Number(x? x[3] : 0)
+      multipleAccountData[`ltv`] = Number(x? x[4] : 0) ;
+      multipleAccountData[`healthFactor`] = Number(x? x[5] : 2);
+      
 
       for (let i = 0; i < res.length; i++) {
         let token = assetSymbols[i];
@@ -85,15 +86,15 @@ async function fetchMulticallData(users) {
           Number(res[i].principalStableDebt);
       }
 
-      if (x[5] < 1e18 && x[1] > 10e16) {
+      if (multipleAccountData[`healthFactor`] < 1e18 && multipleAccountData[`totalDebtETH`] > 10e16) {
         console.log(
           users[n].id,
           " | healthFactor >",
-          Number(x[5]),
+          multipleAccountData[`healthFactor`],
           " | totalDebt >",
-          Number(x[1]) / 1e18,
+          multipleAccountData[`totalDebtETH`] / 1e18,
           " | isCollateralized:",
-          (Number(x[1]) < Number(x[0]))
+          (multipleAccountData[`totalDebtETH`] < multipleAccountData[`totalCollateralETH`] )
         );
       }
       userInfo.push(multipleAccountData);

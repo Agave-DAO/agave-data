@@ -71,7 +71,7 @@ const assets = {
   }
 }
 
-const assetSymbols = ["WBTC","EURe", "wstETH", "FOX", "LINK","sDAI","GNO", "USDC", "USDT", "WXDAI","WETH",];
+const assetSymbols = ["WBTC","EURe", "WETH","GNO", "sDAI", "USDC", "USDT", "WXDAI","LINK","wstETH","FOX"];
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -85,7 +85,7 @@ async function loopUsersWithDebt() {
     if (users[j].healthFactor < 106e16 && users[j].totalDebtETH > 6e16) {
       const data = await getUserAccountData(users[j].user);
       await sleep(100);
-      if (data[5] < 1000000000000000000n && data[5] > 900000000000000000n && data[1] > 10e16) {
+      if (data[5] < 1000000000000000000n && data[5] > 80000000000000000n && data[1] > 10e16) {
         const debt = findUserDebts(users[j]);
         const collateral = findUserCollaterals(users[j],debt);
         console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`], data[5], debt);
