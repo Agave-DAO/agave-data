@@ -1,7 +1,9 @@
 import fetch from "node-fetch";
-import fs from "fs";
 
-const GRAPHQL_URL = "https://api.thegraph.com/subgraphs/name/agave-dao/agave-xdai";
+import dotenv from "dotenv";
+dotenv.config();
+
+const GRAPHQL_URL = `https://gateway-arbitrum.network.thegraph.com/api/${process.env.THEGRAPH_KEY}/subgraphs/id/Hn7FbfXZQ8qsNZvGogymrhdusrinifkH172bpPYNi5Kv`;
 
 async function fetchAllUsers() {
     let users = [];

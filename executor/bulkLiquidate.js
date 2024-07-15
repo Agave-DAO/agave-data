@@ -88,7 +88,7 @@ async function loopUsersWithDebt() {
       if (data[5] < 1000000000000000000n && data[5] > 80000000000000000n && data[1] > 10e16) {
         const debt = findUserDebts(users[j]);
         const collateral = findUserCollaterals(users[j],debt);
-        console.log(users[j].user, users[j][`${collateral}:agBalance`], users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`], data[5], debt);
+        console.log(users[j].user, users[j][`${collateral}:agBalance`],collateral, users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`], data[5], debt);
         if (debt === "LINK" || debt === "FOX") {
           if (users[j][`${debt}:scaledVariableDebt`] + users[j][`${debt}:principalStableDebt`] > 10n && users[j][`${collateral}:agBalance`] > 10n) {
             const liquidateMax = await myBalance(assets[debt].reserve);           
