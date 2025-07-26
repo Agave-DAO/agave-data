@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import dotenv from "dotenv";
 dotenv.config();
 
-const GRAPHQL_URL = `https://gateway-arbitrum.network.thegraph.com/api/${process.env.THEGRAPH_KEY}/subgraphs/id/Hn7FbfXZQ8qsNZvGogymrhdusrinifkH172bpPYNi5Kv`;
+const GRAPHQL_URL = `https://gateway.thegraph.com/api/subgraphs/id/Hn7FbfXZQ8qsNZvGogymrhdusrinifkH172bpPYNi5Kv`;
 
 async function fetchAllUsers() {
     let users = [];
@@ -32,12 +32,13 @@ async function queryUserIds(userId) {
       method: "POST",
       headers: {
         "content-type": "application/json",
+        "Authorization": `Bearer ${process.env.THEGRAPH_KEY}`
       },
       body: JSON.stringify({
         query: querySchema,
       }),
     });
-    
+
     const responseBody = await response.json();
     return responseBody.data.users;
   }
